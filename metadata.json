@@ -1,0 +1,6 @@
+{
+  "name": "HiperMeal — AI Visual Nutrition Diary",
+  "description": "Minimal visual nutrition diary with meal-photo upload, Pokémon-type-inspired food category taxonomy, and modular AI analysis architecture.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
