@@ -4,9 +4,9 @@ HiperMeal is an AI-assisted visual nutrition diary built with React 19, TypeScri
 
 ## Core Principles
 
-1. **AI for Visual Identification Only**: Vision models (`gemma-4-26b-a4b-it` primary, `gemini-3-flash-preview` fallback) identify visible dishes, assign a visual category badge, and provide an approximate serving weight (`~g`). AI is **never** used to invent calorie or macronutrient numbers.
+1. **AI for Visual Identification Only**: Vision models (`gemma-4-26b-a4b-it` primary, `gemini-3.8-flash` fallback) identify visible dishes, assign a visual category badge, and provide an approximate serving weight (`~g`). AI is **never** used to invent calorie or macronutrient numbers.
 2. **Traceable Nutrition Sources**:
-   - **Local Indian Food Reference Dataset (`src/data/indianFoodDataset.ts`)**: 16 documented entries per 100g with explicit preparation assumptions and citations to **ICMR-NIN Indian Food Composition Tables (IFCT 2017)** and **USDA FoodData Central (SR Legacy)**.
+   - **Local Indian Food Reference Dataset (`src/data/indianFoodDataset.ts`)**: 19 documented entries per 100g with explicit preparation assumptions and citations to **ICMR-NIN Indian Food Composition Tables (IFCT 2017)** and **USDA FoodData Central (SR Legacy)**.
    - **Live Open Food Facts Integration (`GET /api/nutrition/openfoodfacts`)**: Queries the Open Food Facts search API for packaged products and validates relevance (`>= 0.5`), per-100g basis, energy/macro units (`kcal`, `g`), and missing nutrient fields (`null` preserved rather than fabricated as `0`).
 3. **Human-in-the-Loop Verification**: Users can rename items, clarify ambiguous generic names (e.g., `"Dal"`, `"Rice"`, `"Sabzi"`), adjust serving sizes in grams, add missing items manually, remove false detections, or reset the workspace at any time with **Start New Meal**.
 
@@ -51,6 +51,13 @@ npm start
 - **Visual Portion Uncertainty**: Gram weights estimated from a single 2D photograph are approximations and should be confirmed or adjusted by the user.
 - **Homemade Recipe Variability**: Reference values in the local ICMR-NIN dataset represent standard domestic preparations; household variations in oil, ghee, or water content will shift actual caloric density.
 - **External API Availability**: Packaged-food lookups depend on live Open Food Facts availability and product catalog completeness (for example, some branded products omit dietary fiber on their label, which HiperMeal reports as `N/A` and flags in the meal summary).
+
+## Data & API Attribution
+
+- **Open Food Facts**: Packaged food nutrition records are retrieved live from [Open Food Facts](https://world.openfoodfacts.org/), an open collaborative database licensed under the [Open Database License (ODbL 1.0)](https://opendatacommons.org/licenses/odbl/1-0/).
+- **ICMR-NIN Indian Food Composition Tables (IFCT 2017)**: Reference values and cooked hydration/recipe equivalents for Indian staples are derived from T. Longvah et al., *Indian Food Composition Tables*, National Institute of Nutrition (ICMR), Hyderabad (2017), and *Dietary Guidelines for Indians*.
+- **USDA FoodData Central (SR Legacy)**: Single-ingredient cooked and raw food reference values are cross-referenced against the U.S. Department of Agriculture, Agricultural Research Service, FoodData Central Standard Reference Legacy.
+- **Google GenAI SDK (`@google/genai`)**: Server-side visual food detection uses `gemma-4-26b-a4b-it` (primary) with `gemini-3.8-flash` (fallback).
 
 ## License
 

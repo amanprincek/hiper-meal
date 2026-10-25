@@ -267,7 +267,7 @@ export const LOCAL_INDIAN_FOOD_DATASET: LocalIndianFoodEntry[] = [
       fiberGrams: 0.4,
     },
     sourceReference:
-      'ICMR-NIN IFCT 2017Composite (75% Plain Curd + 25% Raw Cucumber D019)',
+      'ICMR-NIN IFCT 2017 Composite (75% Plain Curd + 25% Raw Cucumber D019)',
     preparationAssumptions:
       'Generic reference for vegetable/cucumber raita without fried gram-flour boondi.',
   },
@@ -348,6 +348,33 @@ export const LOCAL_INDIAN_FOOD_DATASET: LocalIndianFoodEntry[] = [
       'Generic reference assuming 4g cooking oil per 100g cooked sabzi.',
   },
   {
+    id: 'ind-paneer-raw',
+    name: 'Plain Paneer (Indian Cottage Cheese, Full-Fat)',
+    description:
+      'Unseasoned firm Indian cottage cheese (chhena/paneer) coagulated from whole cow or buffalo milk.',
+    category: FoodCategory.PROTEIN,
+    aliases: [
+      'paneer',
+      'plain paneer',
+      'raw paneer',
+      'fresh paneer',
+      'paneer cubes',
+      'indian cottage cheese',
+      'cottage cheese',
+    ],
+    nutritionPer100g: {
+      caloriesKcal: 265,
+      proteinGrams: 18.3,
+      carbsGrams: 1.2,
+      fatGrams: 20.8,
+      fiberGrams: 0.0,
+    },
+    sourceReference:
+      'ICMR-NIN IFCT 2017 (Paneer / Chhena L005)',
+    preparationAssumptions:
+      'Generic reference for plain unseasoned full-fat paneer. Pan-fried paneer tikka or rich gravies (e.g., Paneer Butter Masala) will differ in calorie and fat density.',
+  },
+  {
     id: 'ind-palak-paneer',
     name: 'Cooked Palak Paneer (Spinach with Indian Cottage Cheese)',
     description:
@@ -391,6 +418,60 @@ export const LOCAL_INDIAN_FOOD_DATASET: LocalIndianFoodEntry[] = [
     sourceReference: 'USDA FoodData Central SR Legacy #170379 (Broccoli, cooked, boiled, drained)',
     preparationAssumptions:
       'Generic reference for plain steamed/boiled broccoli without oil or dressing.',
+  },
+  {
+    id: 'ind-raw-banana',
+    name: 'Banana (Raw, Ripe, Peeled)',
+    description:
+      'Fresh ripe banana edible flesh without peel.',
+    category: FoodCategory.PRODUCE,
+    aliases: [
+      'banana',
+      'ripe banana',
+      'raw banana fruit',
+      'fresh banana',
+      'sliced banana',
+      'bananas',
+      'kela',
+    ],
+    nutritionPer100g: {
+      caloriesKcal: 89,
+      proteinGrams: 1.1,
+      carbsGrams: 22.8,
+      fatGrams: 0.3,
+      fiberGrams: 2.6,
+    },
+    sourceReference:
+      'USDA FoodData Central SR Legacy #173944 (Bananas, raw) / ICMR-NIN IFCT 2017 (Banana Ripe E009)',
+    preparationAssumptions:
+      'Edible peeled portion of fresh ripe banana (1 medium peeled banana is typically ~100–118g).',
+  },
+  {
+    id: 'ind-raw-apple',
+    name: 'Apple (Raw, With Skin)',
+    description:
+      'Fresh whole raw apple slices or fruit with skin.',
+    category: FoodCategory.PRODUCE,
+    aliases: [
+      'apple',
+      'raw apple',
+      'fresh apple',
+      'apple slices',
+      'sliced apple',
+      'apples',
+      'seb',
+    ],
+    nutritionPer100g: {
+      caloriesKcal: 52,
+      proteinGrams: 0.3,
+      carbsGrams: 13.8,
+      fatGrams: 0.2,
+      fiberGrams: 2.4,
+    },
+    sourceReference:
+      'USDA FoodData Central SR Legacy #171688 (Apples, raw, with skin) / ICMR-NIN IFCT 2017 (Apple E002)',
+    preparationAssumptions:
+      'Edible raw apple with skin (cored).',
   },
   {
     id: 'ind-grilled-salmon',
