@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
@@ -12,6 +12,7 @@ import {
   Minus,
   Plus,
   RefreshCw,
+  RotateCcw,
   Search,
   Trash2,
   UtensilsCrossed,
@@ -43,6 +44,7 @@ interface AnalysisResultsPanelProps {
   lastAnalyzedAtIso: string | null;
   onSelectPhotoClick: () => void;
   onRetryAnalysis: () => void;
+  onStartNewMeal: () => void;
   onUpdateFoodItem: (
     id: string,
     updates: Partial<
@@ -83,6 +85,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
   lastAnalyzedAtIso,
   onSelectPhotoClick,
   onRetryAnalysis,
+  onStartNewMeal,
   onUpdateFoodItem,
   onLookupItemNutrition,
   onSelectCandidateMatch,
@@ -95,6 +98,15 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
   );
   const [newItemPortion, setNewItemPortion] = useState<string>('100');
   const [showAddForm, setShowAddForm] = useState(false);
+
+  useEffect(() => {
+    if (status === 'IDLE') {
+      setShowAddForm(false);
+      setNewItemName('');
+      setNewItemCategory(FoodCategory.PRODUCE);
+      setNewItemPortion('100');
+    }
+  }, [status]);
 
   const summary = aggregateMealNutrition(detectedItems);
 
@@ -122,7 +134,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
     <section
       id="results-workspace"
       aria-labelledby="results-heading"
-      className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between h-full"
+      className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 flex flex-col justify-between h-full"
     >
       <div>
         {/* Section Header */}
@@ -261,6 +273,15 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                   <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>Retry Analysis</span>
                 </button>
+                <button
+                  type="button"
+                  onClick={onStartNewMeal}
+                  data-testid="error-start-new-meal-button"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-800 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Start New Meal</span>
+                </button>
               </div>
             </div>
           )}
@@ -315,20 +336,31 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                 </div>
               </div>
 
-              {/* Action Toolbar: Add Food Item Manually */}
-              <div className="flex items-center justify-between gap-2 pt-1">
+              {/* Action Toolbar: Add Food Item Manually + Start New Meal */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                 <span className="text-xs font-semibold text-slate-700">
                   Detected & Logged Items ({detectedItems.length})
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setShowAddForm((prev) => !prev)}
-                  data-testid="toggle-add-food-button"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" aria-hidden="true" />
-                  <span>{showAddForm ? 'Cancel Add' : 'Add Food Item'}</span>
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddForm((prev) => !prev)}
+                    data-testid="toggle-add-food-button"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>{showAddForm ? 'Cancel Add' : 'Add Food Item'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onStartNewMeal}
+                    data-testid="results-start-new-meal-button"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>Start New Meal</span>
+                  </button>
+                </div>
               </div>
 
               {/* Manual Add Food Item Form */}
@@ -449,8 +481,8 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                         className={`p-4 rounded-xl border transition-colors ${cat.surfaceClass} ${cat.borderClass}`}
                       >
                         {/* Top Row: Category Swatch + Editable Name + Lookup Button + Remove Button */}
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-1 min-w-[180px]">
                             <span
                               className={`w-3 h-3 rounded-sm shrink-0 ${cat.swatchClass}`}
                               title={`${cat.label} (${cat.typeInspiration})`}
@@ -477,6 +509,9 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                               }}
                               className="w-full px-2.5 py-1 text-sm font-semibold text-slate-900 bg-white/95 border border-slate-200 rounded-lg focus:outline-2 focus:outline-slate-900"
                             />
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
                             <button
                               type="button"
                               onClick={() =>
@@ -489,18 +524,18 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                               <Search className="w-3.5 h-3.5" aria-hidden="true" />
                               <span>Match</span>
                             </button>
-                          </div>
 
-                          <button
-                            type="button"
-                            onClick={() => onRemoveFoodItem(item.id)}
-                            aria-label={`Remove ${item.name}`}
-                            data-testid={`remove-food-item-${index}`}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-rose-700 hover:text-rose-950 hover:bg-rose-100/80 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-                            <span>Remove</span>
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => onRemoveFoodItem(item.id)}
+                              aria-label={`Remove ${item.name}`}
+                              data-testid={`remove-food-item-${index}`}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-rose-700 hover:text-rose-950 hover:bg-rose-100/80 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                              <span>Remove</span>
+                            </button>
+                          </div>
                         </div>
 
                         {/* Middle Row: Editable Category Select & Confirmed Serving Size Input */}
@@ -707,7 +742,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                 className="space-y-2"
                               >
                                 {/* Scaled Item Macros Strip (for confirmed serving size) */}
-                                <div className="grid grid-cols-5 gap-1.5 bg-white/90 border border-slate-200/90 rounded-lg p-2 text-center">
+                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 bg-white/90 border border-slate-200/90 rounded-lg p-2 text-center">
                                   <div>
                                     <span className="text-[10px] text-slate-500 block">
                                       Calories
@@ -764,7 +799,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                       )}
                                     </span>
                                   </div>
-                                  <div>
+                                  <div className="col-span-2 sm:col-span-1">
                                     <span className="text-[10px] text-slate-500 block">
                                       Fiber
                                     </span>

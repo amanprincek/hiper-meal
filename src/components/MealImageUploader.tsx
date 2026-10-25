@@ -6,6 +6,7 @@ import {
   ImagePlus,
   Loader2,
   RefreshCw,
+  RotateCcw,
   ScanSearch,
   Trash2,
   X,
@@ -25,6 +26,7 @@ interface MealImageUploaderProps {
   analysisStatus: AnalysisStatus;
   onFileSelected: (file: File | null | undefined) => void;
   onRemoveImage: () => void;
+  onStartNewMeal: () => void;
   onDismissError: () => void;
   onAnalyzeMeal: () => void;
 }
@@ -37,6 +39,7 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
   analysisStatus,
   onFileSelected,
   onRemoveImage,
+  onStartNewMeal,
   onDismissError,
   onAnalyzeMeal,
 }) => {
@@ -77,16 +80,20 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
   };
 
   const isAnalyzing = analysisStatus === 'ANALYZING';
+  const hasActiveMealState =
+    Boolean(uploadedImage) ||
+    analysisStatus !== 'IDLE' ||
+    Boolean(validationError);
 
   return (
     <section
       id="upload-workspace"
       aria-labelledby="upload-heading"
-      className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between h-full"
+      className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 flex flex-col justify-between h-full"
     >
       <div>
         {/* Section Header */}
-        <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100">
+        <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-100">
           <div>
             <h2
               id="upload-heading"
@@ -98,8 +105,21 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
               Upload a clear overhead or angled photo of your plate to begin visual logging.
             </p>
           </div>
-          <div className="text-xs text-slate-500 font-mono whitespace-nowrap shrink-0">
-            <span>Max 10.00 MB</span>
+          <div className="flex items-center gap-2 shrink-0">
+            {hasActiveMealState && (
+              <button
+                type="button"
+                onClick={onStartNewMeal}
+                data-testid="start-new-meal-button"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Start New Meal</span>
+              </button>
+            )}
+            <div className="text-xs text-slate-500 font-mono whitespace-nowrap shrink-0 hidden sm:block">
+              <span>Max 10.00 MB</span>
+            </div>
           </div>
         </div>
 
@@ -171,7 +191,7 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`min-h-[300px] rounded-xl border-2 border-dashed transition-colors flex flex-col items-center justify-center p-8 text-center ${
+              className={`min-h-[300px] rounded-xl border-2 border-dashed transition-colors flex flex-col items-center justify-center p-6 sm:p-8 text-center ${
                 isDraggingOver
                   ? 'border-slate-900 bg-slate-100/70'
                   : 'border-slate-300 bg-slate-50/70 hover:border-slate-400'
@@ -200,7 +220,7 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
                 </button>
               </div>
 
-              <div className="mt-5 flex items-center gap-2 text-xs text-slate-500">
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500">
                 <span>Supported formats: JPG, JPEG, PNG, WebP</span>
                 <span aria-hidden="true">·</span>
                 <span>Up to 10 MB</span>
@@ -246,7 +266,7 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
                   <button
                     type="button"
                     onClick={triggerFilePicker}
@@ -260,9 +280,8 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
                   <button
                     type="button"
                     onClick={onRemoveImage}
-                    disabled={isAnalyzing}
                     data-testid="remove-image-button"
-                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 disabled:opacity-50 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                     <span>Remove</span>

@@ -14,6 +14,7 @@ export interface FoodIdentificationRequest {
   image: UploadedMealImage;
   timeoutMs?: number;
   endpointUrl?: string;
+  signal?: AbortSignal;
 }
 
 export interface FoodIdentificationResponse {
@@ -175,7 +176,20 @@ export async function identifyFoodItemsInMeal(
   const endpointUrl = request.endpointUrl ?? '/api/analyze-meal';
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  let timedOut = false;
+  const timeoutId = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+
+  const onExternalAbort = () => controller.abort();
+  if (request.signal) {
+    if (request.signal.aborted) {
+      clearTimeout(timeoutId);
+      throw new DOMException('Analysis aborted by user reset.', 'AbortError');
+    }
+    request.signal.addEventListener('abort', onExternalAbort, { once: true });
+  }
 
   let response: Response;
   try {
@@ -194,12 +208,13 @@ export async function identifyFoodItemsInMeal(
     });
   } catch (err) {
     clearTimeout(timeoutId);
-    if (err instanceof DOMException && err.name === 'AbortError') {
-      throw new Error(
-        `Meal image analysis timed out after ${Math.round(timeoutMs / 1000)} seconds. Please retry.`
-      );
+    if (request.signal?.aborted && !timedOut) {
+      throw new DOMException('Analysis aborted by user reset.', 'AbortError');
     }
-    if (err instanceof Error && err.name === 'AbortError') {
+    if (
+      (err instanceof DOMException && err.name === 'AbortError') ||
+      (err instanceof Error && err.name === 'AbortError')
+    ) {
       throw new Error(
         `Meal image analysis timed out after ${Math.round(timeoutMs / 1000)} seconds. Please retry.`
       );
@@ -209,6 +224,9 @@ export async function identifyFoodItemsInMeal(
     );
   } finally {
     clearTimeout(timeoutId);
+    if (request.signal) {
+      request.signal.removeEventListener('abort', onExternalAbort);
+    }
   }
 
   let rawText: string;

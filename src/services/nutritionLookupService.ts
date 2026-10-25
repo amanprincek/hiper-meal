@@ -19,6 +19,7 @@ export interface NutritionLookupQuery {
   endpointUrl?: string;
   timeoutMs?: number;
   customHeaders?: Record<string, string>;
+  signal?: AbortSignal;
 }
 
 export interface NutritionLookupResult {
@@ -44,6 +45,7 @@ export async function searchOpenFoodFactsCatalog(
     endpointUrl?: string;
     timeoutMs?: number;
     customHeaders?: Record<string, string>;
+    signal?: AbortSignal;
   }
 ): Promise<{
   status: 'MATCHED' | 'UNAVAILABLE' | 'ERROR';
@@ -60,7 +62,20 @@ export async function searchOpenFoodFactsCatalog(
   const url = `${baseEndpoint}?q=${encodeURIComponent(cleanedQuery)}`;
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+
+  const onExternalAbort = () => controller.abort();
+  if (options?.signal) {
+    if (options.signal.aborted) {
+      clearTimeout(timer);
+      throw new DOMException('Nutrition lookup aborted by user reset.', 'AbortError');
+    }
+    options.signal.addEventListener('abort', onExternalAbort, { once: true });
+  }
 
   let response: Response;
   try {
@@ -74,6 +89,9 @@ export async function searchOpenFoodFactsCatalog(
     });
   } catch (err) {
     clearTimeout(timer);
+    if (options?.signal?.aborted && !timedOut) {
+      throw new DOMException('Nutrition lookup aborted by user reset.', 'AbortError');
+    }
     const isAbort =
       (err instanceof DOMException && err.name === 'AbortError') ||
       (err instanceof Error && err.name === 'AbortError');
@@ -86,6 +104,9 @@ export async function searchOpenFoodFactsCatalog(
     };
   } finally {
     clearTimeout(timer);
+    if (options?.signal) {
+      options.signal.removeEventListener('abort', onExternalAbort);
+    }
   }
 
   let body: Record<string, unknown>;
@@ -222,6 +243,7 @@ export async function lookupNutritionPer100g(
     endpointUrl: query.endpointUrl,
     timeoutMs: query.timeoutMs,
     customHeaders: query.customHeaders,
+    signal: query.signal,
   });
 
   if (offResult.status === 'ERROR') {

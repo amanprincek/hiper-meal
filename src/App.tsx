@@ -26,6 +26,11 @@ import {
 
 export default function App() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const mealSessionRef = useRef<number>(0);
+  const activeAbortControllersRef = useRef<Set<AbortController>>(new Set());
+  const lookupTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>(
+    {}
+  );
 
   const [uploadedImage, setUploadedImage] = useState<UploadedMealImage | null>(
     null
@@ -44,14 +49,37 @@ export default function App() {
     null
   );
 
+  const abortAllInFlightRequests = () => {
+    activeAbortControllersRef.current.forEach((controller) => {
+      try {
+        controller.abort();
+      } catch {
+        // Ignore abort errors
+      }
+    });
+    activeAbortControllersRef.current.clear();
+
+    Object.values(lookupTimersRef.current).forEach((timerId) => {
+      clearTimeout(timerId);
+    });
+    lookupTimersRef.current = {};
+  };
+
   const handleTriggerFileSelect = () => {
     fileInputRef.current?.click();
   };
 
   /**
    * Resolves nutrition for a single food item by ID and updates application state.
+   * Respects mealSessionRef so late responses never repopulate a reset meal.
    */
   const resolveNutritionForItem = async (itemId: string, foodName: string) => {
+    if (lookupTimersRef.current[itemId]) {
+      clearTimeout(lookupTimersRef.current[itemId]);
+      delete lookupTimersRef.current[itemId];
+    }
+
+    const sessionId = mealSessionRef.current;
     const trimmed = foodName.trim();
     if (!trimmed) {
       setDetectedItems((prev) =>
@@ -61,7 +89,14 @@ export default function App() {
                 ...item,
                 nutritionStatus: 'UNAVAILABLE',
                 nutritionPer100g: undefined,
-                nutritionMessage: 'Please enter a valid food name to look up nutrition.',
+                nutritionSourceType: undefined,
+                nutritionSourceLabel: 'Nutrition Data Unavailable',
+                matchedRecordId: undefined,
+                matchedFoodDescription: undefined,
+                preparationAssumptions: undefined,
+                candidateMatches: undefined,
+                nutritionMessage:
+                  'Please enter a valid food name to look up nutrition.',
               }
             : item
         )
@@ -81,14 +116,28 @@ export default function App() {
       )
     );
 
+    const controller = new AbortController();
+    activeAbortControllersRef.current.add(controller);
+
     try {
-      const result = await lookupNutritionPer100g({ foodName: trimmed });
+      const result = await lookupNutritionPer100g({
+        foodName: trimmed,
+        signal: controller.signal,
+      });
+
+      if (sessionId !== mealSessionRef.current || controller.signal.aborted) {
+        return;
+      }
+
       setDetectedItems((prev) =>
         prev.map((item) =>
           item.id === itemId ? applyLookupResultToFoodItem(item, result) : item
         )
       );
     } catch (err) {
+      if (sessionId !== mealSessionRef.current || controller.signal.aborted) {
+        return;
+      }
       const msg =
         err instanceof Error
           ? err.message
@@ -105,6 +154,8 @@ export default function App() {
             : item
         )
       );
+    } finally {
+      activeAbortControllersRef.current.delete(controller);
     }
   };
 
@@ -113,19 +164,30 @@ export default function App() {
       return;
     }
 
+    abortAllInFlightRequests();
+    mealSessionRef.current += 1;
+    const sessionId = mealSessionRef.current;
+
     setValidationError(null);
     setAnalysisError(null);
     setIsProcessingFile(true);
 
     try {
       const verifiedImage = await loadAndVerifyImageFile(file);
+      if (sessionId !== mealSessionRef.current) {
+        return;
+      }
       setUploadedImage(verifiedImage);
       setDetectedItems([]);
       setStatusMessage(null);
       setModelUsed(null);
       setIsFoodImage(null);
+      setLastAnalyzedAtIso(null);
       setAnalysisStatus('READY_TO_ANALYZE');
     } catch (err) {
+      if (sessionId !== mealSessionRef.current) {
+        return;
+      }
       const structuredErr = err as ImageValidationError;
       if (structuredErr && structuredErr.code && structuredErr.message) {
         setValidationError(structuredErr);
@@ -138,13 +200,28 @@ export default function App() {
         });
       }
     } finally {
-      setIsProcessingFile(false);
+      if (sessionId === mealSessionRef.current) {
+        setIsProcessingFile(false);
+      }
     }
   };
 
-  const handleRemoveImage = () => {
+  /**
+   * Full Meal Reset ("Start New Meal"):
+   * Cancels any in-flight AI or nutrition requests, clears the file input,
+   * clears image preview, items, nutrition results, and errors, and returns to IDLE.
+   */
+  const handleStartNewMeal = () => {
+    mealSessionRef.current += 1;
+    abortAllInFlightRequests();
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
     setUploadedImage(null);
     setValidationError(null);
+    setIsProcessingFile(false);
     setDetectedItems([]);
     setStatusMessage(null);
     setAnalysisError(null);
@@ -168,6 +245,12 @@ export default function App() {
       return;
     }
 
+    abortAllInFlightRequests();
+    mealSessionRef.current += 1;
+    const sessionId = mealSessionRef.current;
+    const controller = new AbortController();
+    activeAbortControllersRef.current.add(controller);
+
     setValidationError(null);
     setAnalysisError(null);
     setAnalysisStatus('ANALYZING');
@@ -175,7 +258,12 @@ export default function App() {
     try {
       const response = await identifyFoodItemsInMeal({
         image: uploadedImage,
+        signal: controller.signal,
       });
+
+      if (sessionId !== mealSessionRef.current || controller.signal.aborted) {
+        return;
+      }
 
       const itemsLoadingNutrition: DetectedFoodItem[] = response.items.map(
         (item) => ({
@@ -198,12 +286,17 @@ export default function App() {
         )
       );
     } catch (err) {
+      if (sessionId !== mealSessionRef.current || controller.signal.aborted) {
+        return;
+      }
       const message =
         err instanceof Error
           ? err.message
           : 'Failed to analyze the selected meal image.';
       setAnalysisError(message);
       setAnalysisStatus('ERROR');
+    } finally {
+      activeAbortControllersRef.current.delete(controller);
     }
   };
 
@@ -213,17 +306,56 @@ export default function App() {
       Pick<DetectedFoodItem, 'name' | 'category' | 'estimatedPortionGrams'>
     >
   ) => {
+    let shouldScheduleLookup = false;
+    let updatedName = '';
+
     setDetectedItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              ...updates,
-              userCorrected: true,
-            }
-          : item
-      )
+      prevItems.map((item) => {
+        if (item.id !== id) {
+          return item;
+        }
+
+        const nameChanged =
+          updates.name !== undefined && updates.name !== item.name;
+        if (nameChanged) {
+          shouldScheduleLookup = true;
+          updatedName = updates.name ?? '';
+        }
+
+        return {
+          ...item,
+          ...updates,
+          userCorrected: true,
+          ...(nameChanged
+            ? {
+                nutritionStatus: updatedName.trim() ? 'LOADING' : 'UNAVAILABLE',
+                nutritionPer100g: undefined,
+                nutritionSourceType: undefined,
+                nutritionSourceLabel: undefined,
+                matchedRecordId: undefined,
+                matchedFoodDescription: undefined,
+                preparationAssumptions: undefined,
+                candidateMatches: undefined,
+                nutritionMessage: updatedName.trim()
+                  ? undefined
+                  : 'Please enter a valid food name to look up nutrition.',
+              }
+            : {}),
+        };
+      })
     );
+
+    if (shouldScheduleLookup) {
+      if (lookupTimersRef.current[id]) {
+        clearTimeout(lookupTimersRef.current[id]);
+      }
+      const trimmed = updatedName.trim();
+      if (trimmed) {
+        lookupTimersRef.current[id] = setTimeout(() => {
+          void resolveNutritionForItem(id, trimmed);
+        }, 300);
+      }
+    }
   };
 
   const handleSelectCandidateMatch = (
@@ -240,6 +372,10 @@ export default function App() {
   };
 
   const handleRemoveFoodItem = (id: string) => {
+    if (lookupTimersRef.current[id]) {
+      clearTimeout(lookupTimersRef.current[id]);
+      delete lookupTimersRef.current[id];
+    }
     setDetectedItems((prevItems) => prevItems.filter((item) => item.id !== id));
   };
 
@@ -269,7 +405,7 @@ export default function App() {
       <Header onTriggerFileSelect={handleTriggerFileSelect} />
 
       {/* Main Dashboard Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
         {/* Dashboard Hero / Intro Header */}
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2">
           <div className="max-w-2xl">
@@ -280,8 +416,8 @@ export default function App() {
               Capture a meal photo, review AI food detections, and calculate verified nutrition totals from the ICMR-NIN Indian reference dataset and Open Food Facts.
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 shrink-0">
-            <span>Phase 3 Verified Nutrition</span>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 shrink-0">
+            <span>Verified Nutrition Diary</span>
             <span aria-hidden="true">·</span>
             <span>ICMR-NIN & Open Food Facts</span>
             <span aria-hidden="true">·</span>
@@ -299,7 +435,8 @@ export default function App() {
               isProcessingFile={isProcessingFile}
               analysisStatus={analysisStatus}
               onFileSelected={handleFileSelected}
-              onRemoveImage={handleRemoveImage}
+              onRemoveImage={handleStartNewMeal}
+              onStartNewMeal={handleStartNewMeal}
               onDismissError={handleDismissError}
               onAnalyzeMeal={handleAnalyzeMeal}
             />
@@ -317,6 +454,7 @@ export default function App() {
               lastAnalyzedAtIso={lastAnalyzedAtIso}
               onSelectPhotoClick={handleTriggerFileSelect}
               onRetryAnalysis={handleAnalyzeMeal}
+              onStartNewMeal={handleStartNewMeal}
               onUpdateFoodItem={handleUpdateFoodItem}
               onLookupItemNutrition={resolveNutritionForItem}
               onSelectCandidateMatch={handleSelectCandidateMatch}
@@ -332,7 +470,7 @@ export default function App() {
 
       {/* Quiet Footer */}
       <footer className="border-t border-slate-200 bg-white mt-12">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <span>HiperMeal — Visual Nutrition Diary</span>
           <span>
             Nutrition data sourced from ICMR-NIN IFCT 2017 / USDA FDC and Open Food Facts (ODbL). Visual category colors are for grouping only.
