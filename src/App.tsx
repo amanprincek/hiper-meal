@@ -11,11 +11,18 @@ import { CategoryTypeLegend } from './components/CategoryTypeLegend';
 import {
   AnalysisStatus,
   DetectedFoodItem,
+  FoodCategory,
   ImageValidationError,
+  NutritionCandidateMatch,
   UploadedMealImage,
 } from './types/nutrition';
 import { loadAndVerifyImageFile } from './utils/imageValidation';
 import { identifyFoodItemsInMeal } from './services/foodIdentificationService';
+import {
+  applyCandidateMatchToFoodItem,
+  applyLookupResultToFoodItem,
+  lookupNutritionPer100g,
+} from './services/nutritionLookupService';
 
 export default function App() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -31,12 +38,74 @@ export default function App() {
   const [detectedItems, setDetectedItems] = useState<DetectedFoodItem[]>([]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [modelUsed, setModelUsed] = useState<string | null>(null);
+  const [isFoodImage, setIsFoodImage] = useState<boolean | null>(null);
   const [lastAnalyzedAtIso, setLastAnalyzedAtIso] = useState<string | null>(
     null
   );
 
   const handleTriggerFileSelect = () => {
     fileInputRef.current?.click();
+  };
+
+  /**
+   * Resolves nutrition for a single food item by ID and updates application state.
+   */
+  const resolveNutritionForItem = async (itemId: string, foodName: string) => {
+    const trimmed = foodName.trim();
+    if (!trimmed) {
+      setDetectedItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                nutritionStatus: 'UNAVAILABLE',
+                nutritionPer100g: undefined,
+                nutritionMessage: 'Please enter a valid food name to look up nutrition.',
+              }
+            : item
+        )
+      );
+      return;
+    }
+
+    setDetectedItems((prev) =>
+      prev.map((item) =>
+        item.id === itemId
+          ? {
+              ...item,
+              nutritionStatus: 'LOADING',
+              nutritionMessage: undefined,
+            }
+          : item
+      )
+    );
+
+    try {
+      const result = await lookupNutritionPer100g({ foodName: trimmed });
+      setDetectedItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId ? applyLookupResultToFoodItem(item, result) : item
+        )
+      );
+    } catch (err) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : 'Failed to look up nutrition data.';
+      setDetectedItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                nutritionStatus: 'ERROR',
+                nutritionPer100g: undefined,
+                nutritionMessage: msg,
+              }
+            : item
+        )
+      );
+    }
   };
 
   const handleFileSelected = async (file: File | null | undefined) => {
@@ -53,6 +122,8 @@ export default function App() {
       setUploadedImage(verifiedImage);
       setDetectedItems([]);
       setStatusMessage(null);
+      setModelUsed(null);
+      setIsFoodImage(null);
       setAnalysisStatus('READY_TO_ANALYZE');
     } catch (err) {
       const structuredErr = err as ImageValidationError;
@@ -77,6 +148,8 @@ export default function App() {
     setDetectedItems([]);
     setStatusMessage(null);
     setAnalysisError(null);
+    setModelUsed(null);
+    setIsFoodImage(null);
     setLastAnalyzedAtIso(null);
     setAnalysisStatus('IDLE');
   };
@@ -104,13 +177,25 @@ export default function App() {
         image: uploadedImage,
       });
 
-      setDetectedItems(response.items);
+      const itemsLoadingNutrition: DetectedFoodItem[] = response.items.map(
+        (item) => ({
+          ...item,
+          nutritionStatus: 'LOADING',
+        })
+      );
+
+      setDetectedItems(itemsLoadingNutrition);
       setStatusMessage(response.message);
+      setModelUsed(response.modelUsed);
+      setIsFoodImage(response.isFoodImage);
       setLastAnalyzedAtIso(response.timestampIso);
-      setAnalysisStatus(
-        response.status === 'PHASE_1_BOUNDARY_REACHED'
-          ? 'PHASE_1_BOUNDARY'
-          : 'COMPLETED'
+      setAnalysisStatus('COMPLETED');
+
+      // Trigger verified nutrition lookup for each detected item concurrently
+      await Promise.all(
+        itemsLoadingNutrition.map((item) =>
+          resolveNutritionForItem(item.id, item.name)
+        )
       );
     } catch (err) {
       const message =
@@ -120,6 +205,62 @@ export default function App() {
       setAnalysisError(message);
       setAnalysisStatus('ERROR');
     }
+  };
+
+  const handleUpdateFoodItem = (
+    id: string,
+    updates: Partial<
+      Pick<DetectedFoodItem, 'name' | 'category' | 'estimatedPortionGrams'>
+    >
+  ) => {
+    setDetectedItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              ...updates,
+              userCorrected: true,
+            }
+          : item
+      )
+    );
+  };
+
+  const handleSelectCandidateMatch = (
+    itemId: string,
+    candidate: NutritionCandidateMatch
+  ) => {
+    setDetectedItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === itemId
+          ? applyCandidateMatchToFoodItem(item, candidate)
+          : item
+      )
+    );
+  };
+
+  const handleRemoveFoodItem = (id: string) => {
+    setDetectedItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  };
+
+  const handleAddFoodItem = (newItem: {
+    name: string;
+    category: FoodCategory;
+    estimatedPortionGrams: number;
+  }) => {
+    const newId = `manual-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const created: DetectedFoodItem = {
+      id: newId,
+      name: newItem.name,
+      category: newItem.category,
+      estimatedPortionGrams: newItem.estimatedPortionGrams,
+      identificationNote: 'Added manually by user.',
+      userCorrected: true,
+      isManuallyAdded: true,
+      nutritionStatus: 'LOADING',
+    };
+    setDetectedItems((prevItems) => [...prevItems, created]);
+    void resolveNutritionForItem(newId, newItem.name);
   };
 
   return (
@@ -136,19 +277,19 @@ export default function App() {
               AI Visual Nutrition Diary
             </h1>
             <p className="text-sm sm:text-base text-slate-600 mt-1.5 leading-relaxed">
-              Capture a meal photo, verify food detections with Pokémon-type-inspired category markers, and estimate nutritional totals in one streamlined workspace.
+              Capture a meal photo, review AI food detections, and calculate verified nutrition totals from the ICMR-NIN Indian reference dataset and Open Food Facts.
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs text-slate-500 shrink-0">
-            <span>Phase 1 Foundation</span>
+            <span>Phase 3 Verified Nutrition</span>
             <span aria-hidden="true">·</span>
-            <span>JPG, JPEG, PNG, WebP</span>
+            <span>ICMR-NIN & Open Food Facts</span>
             <span aria-hidden="true">·</span>
-            <span>Client-Validated Preview</span>
+            <span>Live Macro Scaling</span>
           </div>
         </section>
 
-        {/* Primary 2-Column Workspace: Upload & Preview (Left) + Reserved Detection Results (Right) */}
+        {/* Primary 2-Column Workspace: Upload & Preview (Left) + Editable Detection & Nutrition Review (Right) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           <div className="lg:col-span-6">
             <MealImageUploader
@@ -171,8 +312,16 @@ export default function App() {
               detectedItems={detectedItems}
               statusMessage={statusMessage}
               errorMessage={analysisError}
+              modelUsed={modelUsed}
+              isFoodImage={isFoodImage}
               lastAnalyzedAtIso={lastAnalyzedAtIso}
               onSelectPhotoClick={handleTriggerFileSelect}
+              onRetryAnalysis={handleAnalyzeMeal}
+              onUpdateFoodItem={handleUpdateFoodItem}
+              onLookupItemNutrition={resolveNutritionForItem}
+              onSelectCandidateMatch={handleSelectCandidateMatch}
+              onRemoveFoodItem={handleRemoveFoodItem}
+              onAddFoodItem={handleAddFoodItem}
             />
           </div>
         </div>
@@ -186,7 +335,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <span>HiperMeal — Visual Nutrition Diary</span>
           <span>
-            Visual category accents are for grouping only and do not infer nutritional values.
+            Nutrition data sourced from ICMR-NIN IFCT 2017 / USDA FDC and Open Food Facts (ODbL). Visual category colors are for grouping only.
           </span>
         </div>
       </footer>

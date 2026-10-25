@@ -6,6 +6,21 @@ export enum FoodCategory {
   OILS = 'oils',
 }
 
+export const ALL_FOOD_CATEGORIES: FoodCategory[] = [
+  FoodCategory.PRODUCE,
+  FoodCategory.PROTEIN,
+  FoodCategory.GRAINS,
+  FoodCategory.DAIRY,
+  FoodCategory.OILS,
+];
+
+export function isValidFoodCategory(value: unknown): value is FoodCategory {
+  return (
+    typeof value === 'string' &&
+    ALL_FOOD_CATEGORIES.includes(value as FoodCategory)
+  );
+}
+
 export interface FoodCategoryTaxonomy {
   id: FoodCategory;
   label: string;
@@ -39,8 +54,8 @@ export const FOOD_CATEGORY_TAXONOMY: Record<FoodCategory, FoodCategoryTaxonomy> 
     id: FoodCategory.PROTEIN,
     label: 'Protein-Rich Foods',
     typeInspiration: 'Fighting-Inspired',
-    description: 'Poultry, meat, fish, shellfish, eggs, legumes, tofu, and tempeh.',
-    examples: 'Grilled salmon, chicken breast, eggs, lentils, tofu',
+    description: 'Poultry, meat, fish, shellfish, eggs, legumes, lentils, paneer, tofu, and tempeh.',
+    examples: 'Dal tadka, grilled salmon, chicken breast, eggs, paneer, tofu',
     swatchClass: 'bg-rose-600',
     borderClass: 'border-rose-300',
     textClass: 'text-rose-800',
@@ -50,8 +65,8 @@ export const FOOD_CATEGORY_TAXONOMY: Record<FoodCategory, FoodCategoryTaxonomy> 
     id: FoodCategory.GRAINS,
     label: 'Grains & Starches',
     typeInspiration: 'Ground-Inspired',
-    description: 'Whole and refined cereal grains, breads, pasta, rice, oats, and starchy tubers.',
-    examples: 'Brown rice, sourdough bread, quinoa, oats, sweet potato',
+    description: 'Whole and refined cereal grains, rotis, flatbreads, pasta, rice, oats, and starchy tubers.',
+    examples: 'Basmati rice, whole-wheat roti, sourdough bread, quinoa, oats',
     swatchClass: 'bg-amber-700',
     borderClass: 'border-amber-300',
     textClass: 'text-amber-900',
@@ -61,8 +76,8 @@ export const FOOD_CATEGORY_TAXONOMY: Record<FoodCategory, FoodCategoryTaxonomy> 
     id: FoodCategory.DAIRY,
     label: 'Dairy & Alternatives',
     typeInspiration: 'Ice-Inspired',
-    description: 'Milk, yogurt, kefir, hard and soft cheeses, and fortified dairy alternatives.',
-    examples: 'Greek yogurt, cottage cheese, cheddar, milk',
+    description: 'Milk, curd, raita, yogurt, kefir, cheeses, and fortified dairy alternatives.',
+    examples: 'Plain curd, boondi raita, Greek yogurt, cheddar, milk',
     swatchClass: 'bg-sky-600',
     borderClass: 'border-sky-300',
     textClass: 'text-sky-800',
@@ -72,8 +87,8 @@ export const FOOD_CATEGORY_TAXONOMY: Record<FoodCategory, FoodCategoryTaxonomy> 
     id: FoodCategory.OILS,
     label: 'Oils & Culinary Fats',
     typeInspiration: 'Fire-Inspired',
-    description: 'Cooking oils, dressings, butter, ghee, nuts, and concentrated seed fats.',
-    examples: 'Extra-virgin olive oil, sesame oil, butter, walnuts',
+    description: 'Cooking oils, ghee, butter, dressings, fried snacks, nuts, and concentrated seed fats.',
+    examples: 'Ghee tadka, olive oil, butter, walnuts, fried crisps',
     swatchClass: 'bg-orange-600',
     borderClass: 'border-orange-300',
     textClass: 'text-orange-800',
@@ -81,12 +96,40 @@ export const FOOD_CATEGORY_TAXONOMY: Record<FoodCategory, FoodCategoryTaxonomy> 
   },
 };
 
+/**
+ * Macronutrients per 100g or scaled to a portion.
+ * A null value indicates that a specific nutrient (such as dietary fiber in some
+ * packaged food records) is unrecorded in the source data and must not be
+ * silently treated as a verified zero.
+ */
 export interface MacroNutrients {
-  caloriesKcal: number;
-  proteinGrams: number;
-  carbsGrams: number;
-  fatGrams: number;
-  fiberGrams: number;
+  caloriesKcal: number | null;
+  proteinGrams: number | null;
+  carbsGrams: number | null;
+  fatGrams: number | null;
+  fiberGrams: number | null;
+}
+
+export type NutritionSourceType = 'LOCAL_INDIAN_DATASET' | 'OPEN_FOOD_FACTS';
+
+export type ItemNutritionStatus =
+  | 'IDLE'
+  | 'LOADING'
+  | 'MATCHED'
+  | 'AMBIGUOUS'
+  | 'UNAVAILABLE'
+  | 'ERROR';
+
+export interface NutritionCandidateMatch {
+  id: string;
+  name: string;
+  description: string;
+  sourceType: NutritionSourceType;
+  sourceReference: string;
+  preparationAssumptions?: string;
+  nutritionPer100g: MacroNutrients;
+  barcode?: string;
+  brand?: string;
 }
 
 export interface DetectedFoodItem {
@@ -95,14 +138,29 @@ export interface DetectedFoodItem {
   category: FoodCategory;
   estimatedPortionGrams: number;
   confidenceScore?: number;
+  identificationNote?: string;
   userCorrected?: boolean;
+  isManuallyAdded?: boolean;
   nutritionPer100g?: MacroNutrients;
+  nutritionStatus?: ItemNutritionStatus;
+  nutritionSourceType?: NutritionSourceType;
+  nutritionSourceLabel?: string;
+  matchedRecordId?: string;
+  matchedFoodDescription?: string;
+  preparationAssumptions?: string;
+  nutritionMessage?: string;
+  candidateMatches?: NutritionCandidateMatch[];
 }
 
 export interface MealNutritionSummary {
   totalWeightGrams: number;
   totals: MacroNutrients;
   itemCount: number;
+  itemsWithNutritionCount: number;
+  itemsMissingNutritionCount: number;
+  hasMissingFiberInMatchedItems: boolean;
+  isComplete: boolean;
+  incompleteReason: string | null;
 }
 
 export interface UploadedMealImage {
