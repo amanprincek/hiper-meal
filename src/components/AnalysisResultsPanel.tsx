@@ -13,6 +13,7 @@ import {
   Plus,
   RefreshCw,
   RotateCcw,
+  ScanSearch,
   Search,
   Trash2,
   UtensilsCrossed,
@@ -23,6 +24,7 @@ import {
   DetectedFoodItem,
   FOOD_CATEGORY_TAXONOMY,
   FoodCategory,
+  getCategoryTaxonomy,
   NutritionCandidateMatch,
   UploadedMealImage,
 } from '../types/nutrition';
@@ -134,25 +136,25 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
     <section
       id="results-workspace"
       aria-labelledby="results-heading"
-      className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 flex flex-col justify-between h-full"
+      className="bg-white border border-[#E5E4DF] rounded-2xl p-5 sm:p-6 flex flex-col justify-between h-full"
     >
       <div>
         {/* Section Header */}
-        <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100">
+        <div className="flex items-start justify-between gap-4 pb-4 border-b border-zinc-100">
           <div>
             <h2
               id="results-heading"
-              className="text-lg font-semibold text-slate-900 font-display"
+              className="text-lg font-semibold text-zinc-900 font-display"
             >
-              02. Food Identification & Nutrition Review
+              02. Food Analysis &amp; Editable Items
             </h2>
-            <p className="text-sm text-slate-600 mt-0.5">
-              Inspect AI-detected items, verify reference nutrition sources, and adjust serving weights.
+            <p className="text-xs sm:text-sm text-zinc-600 mt-0.5">
+              Review AI-detected dishes, verify nutrition references, and adjust serving weights.
             </p>
           </div>
           <div
             data-testid="logged-item-count"
-            className="text-xs text-slate-500 font-mono whitespace-nowrap shrink-0"
+            className="text-xs text-zinc-500 font-mono whitespace-nowrap shrink-0"
           >
             <span>{summary.itemCount} items logged</span>
           </div>
@@ -163,22 +165,22 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
           {status === 'IDLE' && (
             <div
               data-testid="results-idle-state"
-              className="min-h-[300px] rounded-xl border border-slate-200 bg-slate-50/60 p-8 flex flex-col items-center justify-center text-center"
+              className="min-h-[320px] rounded-xl border border-[#E5E4DF] bg-[#FAF9F5]/80 p-6 sm:p-8 flex flex-col items-center justify-center text-center"
             >
-              <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600">
+              <div className="w-12 h-12 rounded-2xl bg-white border border-[#E5E4DF] flex items-center justify-center text-emerald-800">
                 <UtensilsCrossed className="w-5 h-5" aria-hidden="true" />
               </div>
-              <h3 className="text-base font-semibold text-slate-900 mt-4 font-display">
+              <h3 className="text-base font-semibold text-zinc-900 mt-4 font-display">
                 Awaiting Meal Photo
               </h3>
-              <p className="text-xs text-slate-600 mt-1.5 max-w-md leading-relaxed">
-                Upload a meal photo in the capture panel first. Once analyzed, identified ingredients, editable serving weights, and verified nutrition profiles (ICMR-NIN Indian Dataset & Open Food Facts) will populate here.
+              <p className="text-xs sm:text-sm text-zinc-600 mt-1.5 max-w-md leading-relaxed">
+                Upload a meal photo in the capture panel first. Once analyzed, identified ingredients, editable serving weights, and verified nutrition profiles (ICMR-NIN Indian Dataset &amp; Open Food Facts) will appear here.
               </p>
               <div className="mt-5">
                 <button
                   type="button"
                   onClick={onSelectPhotoClick}
-                  className="px-4 py-2 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                  className="px-4 py-2 min-h-[38px] text-xs font-semibold text-zinc-800 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-100 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
                 >
                   Choose a Photo to Begin
                 </button>
@@ -189,55 +191,72 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
           {status === 'READY_TO_ANALYZE' && uploadedImage && (
             <div
               data-testid="results-ready-state"
-              className="min-h-[300px] rounded-xl border border-slate-200 bg-slate-50/60 p-8 flex flex-col items-center justify-center text-center"
+              className="min-h-[320px] rounded-xl border border-emerald-200/80 bg-emerald-50/30 p-6 sm:p-8 flex flex-col items-center justify-center text-center"
             >
-              <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-800">
                 <FileImage className="w-5 h-5" aria-hidden="true" />
               </div>
-              <h3 className="text-base font-semibold text-slate-900 mt-4 font-display">
-                Photo Verified & Ready for AI Analysis
+              <h3 className="text-base font-semibold text-zinc-900 mt-4 font-display">
+                Photo Verified &amp; Ready for AI Analysis
               </h3>
-              <p className="text-xs text-slate-600 mt-1.5 max-w-md leading-relaxed">
-                <span className="font-semibold text-slate-800">
+              <p className="text-xs sm:text-sm text-zinc-600 mt-1.5 max-w-md leading-relaxed">
+                <span className="font-semibold text-zinc-900">
                   {uploadedImage.fileName}
                 </span>{' '}
                 ({uploadedImage.width} × {uploadedImage.height} px,{' '}
                 {formatFileSize(uploadedImage.sizeBytes)}) is staged. Click{' '}
-                <span className="font-semibold text-slate-900">Analyze Meal</span>{' '}
+                <span className="font-semibold text-emerald-900">Analyze Meal</span>{' '}
                 to identify food items and look up verified nutrition records.
               </p>
+              <div className="mt-5">
+                <button
+                  type="button"
+                  onClick={onRetryAnalysis}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 min-h-[40px] text-xs sm:text-sm font-semibold text-white bg-emerald-800 hover:bg-emerald-700 rounded-xl transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
+                >
+                  <ScanSearch className="w-4 h-4" aria-hidden="true" />
+                  <span>Analyze Meal Now</span>
+                </button>
+              </div>
             </div>
           )}
 
           {status === 'ANALYZING' && (
             <div
               data-testid="results-loading-state"
-              className="min-h-[300px] rounded-xl border border-slate-200 bg-slate-50/60 p-6 flex flex-col justify-between"
+              className="min-h-[320px] rounded-xl border border-[#E5E4DF] bg-[#FAF9F5]/80 p-6 flex flex-col justify-between"
             >
               <div className="flex items-center gap-3">
                 <Loader2
-                  className="w-5 h-5 text-emerald-600 animate-spin shrink-0"
+                  className="w-5 h-5 text-emerald-700 animate-spin shrink-0"
                   aria-hidden="true"
                 />
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-sm font-semibold text-zinc-900">
                     Analyzing meal photo with vision model...
                   </p>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Identifying dishes, food categories, and approximate portion estimates.
+                  <p className="text-xs text-zinc-600 mt-0.5">
+                    Identifying visible dishes, food categories, and approximate portion estimates.
                   </p>
                 </div>
               </div>
 
               {/* Clean Skeleton Rows */}
               <div className="space-y-3 my-6" aria-hidden="true">
-                <div className="h-14 bg-slate-200/70 rounded-xl animate-pulse" />
-                <div className="h-14 bg-slate-200/70 rounded-xl animate-pulse" />
-                <div className="h-14 bg-slate-200/70 rounded-xl animate-pulse" />
+                <div className="h-16 bg-zinc-200/70 rounded-xl animate-pulse" />
+                <div className="h-16 bg-zinc-200/70 rounded-xl animate-pulse" />
+                <div className="h-16 bg-zinc-200/70 rounded-xl animate-pulse" />
               </div>
 
-              <div className="text-xs text-slate-400 font-mono">
+              <div className="flex items-center justify-between gap-2 text-xs text-zinc-500 font-mono">
                 <span>Awaiting structured model response...</span>
+                <button
+                  type="button"
+                  onClick={onStartNewMeal}
+                  className="text-zinc-700 hover:text-zinc-950 font-sans font-semibold underline underline-offset-4 cursor-pointer"
+                >
+                  Cancel &amp; Reset
+                </button>
               </div>
             </div>
           )}
@@ -246,7 +265,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
             <div
               role="alert"
               data-testid="results-error-state"
-              className="min-h-[300px] rounded-xl border border-rose-200 bg-rose-50/60 p-8 flex flex-col items-center justify-center text-center"
+              className="min-h-[320px] rounded-xl border border-rose-200 bg-rose-50/50 p-6 sm:p-8 flex flex-col items-center justify-center text-center"
             >
               <AlertTriangle
                 className="w-8 h-8 text-rose-600"
@@ -257,7 +276,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
               </h3>
               <p
                 data-testid="results-error-message"
-                className="text-xs text-rose-800 mt-1.5 max-w-md leading-relaxed"
+                className="text-xs sm:text-sm text-rose-800 mt-1.5 max-w-md leading-relaxed"
               >
                 {errorMessage ||
                   'An unexpected error occurred while processing the meal image.'}
@@ -268,7 +287,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                   type="button"
                   onClick={onRetryAnalysis}
                   data-testid="retry-analysis-button"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 min-h-[38px] text-xs font-semibold text-white bg-emerald-800 hover:bg-emerald-700 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
                 >
                   <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>Retry Analysis</span>
@@ -277,7 +296,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                   type="button"
                   onClick={onStartNewMeal}
                   data-testid="error-start-new-meal-button"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-800 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 min-h-[38px] text-xs font-semibold text-zinc-800 bg-white border border-zinc-300 hover:bg-zinc-100 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
                 >
                   <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>Start New Meal</span>
@@ -289,23 +308,25 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
           {(status === 'COMPLETED' || status === 'PHASE_1_BOUNDARY') && (
             <div data-testid="results-completed-state" className="space-y-4">
               {/* Analysis Summary Header Banner */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-start justify-between gap-3">
+              <div className="p-4 rounded-xl bg-emerald-50/40 border border-emerald-200/70 flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
                   <Info
-                    className="w-4 h-4 text-slate-700 shrink-0 mt-0.5"
+                    className="w-4 h-4 text-emerald-800 shrink-0 mt-0.5"
                     aria-hidden="true"
                   />
-                  <div className="text-xs text-slate-700 leading-relaxed">
-                    <div className="flex flex-wrap items-center gap-2 text-slate-500">
-                      <span className="font-semibold text-slate-900">
+                  <div className="text-xs text-zinc-700 leading-relaxed">
+                    <div className="flex flex-wrap items-center gap-2 text-zinc-500">
+                      <span className="font-semibold text-zinc-900">
                         {isFoodImage === false
                           ? 'No Recognizable Food Identified'
-                          : 'AI Visual Analysis & Nutrition Lookup'}
+                          : 'AI Visual Analysis & Verified Nutrition Lookup'}
                       </span>
                       {modelUsed && (
                         <>
                           <span aria-hidden="true">·</span>
-                          <span className="font-mono">{modelUsed}</span>
+                          <span className="font-mono text-emerald-900">
+                            {modelUsed}
+                          </span>
                         </>
                       )}
                       {lastAnalyzedAtIso && (
@@ -324,13 +345,13 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                     {statusMessage && (
                       <p
                         data-testid="analysis-overall-note"
-                        className="mt-1 text-slate-700"
+                        className="mt-1 text-zinc-800"
                       >
                         {statusMessage}
                       </p>
                     )}
-                    <p className="mt-1.5 text-[11px] text-slate-500">
-                      Portion weights (~g) are visual estimates, and nutrition values come strictly from documented reference tables or Open Food Facts (never AI-invented).
+                    <p className="mt-1.5 text-[11px] text-zinc-500">
+                      Portion weights (~g) are visual estimates. Nutrition values come strictly from ICMR-NIN / USDA reference tables or Open Food Facts (never AI-invented).
                     </p>
                   </div>
                 </div>
@@ -338,24 +359,24 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
 
               {/* Action Toolbar: Add Food Item Manually + Start New Meal */}
               <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                <span className="text-xs font-semibold text-slate-700">
-                  Detected & Logged Items ({detectedItems.length})
+                <span className="text-xs font-semibold text-zinc-800">
+                  Detected &amp; Logged Items ({detectedItems.length})
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setShowAddForm((prev) => !prev)}
                     data-testid="toggle-add-food-button"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] text-xs font-semibold text-emerald-950 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100/80 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
                   >
-                    <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+                    <Plus className="w-3.5 h-3.5 text-emerald-800" aria-hidden="true" />
                     <span>{showAddForm ? 'Cancel Add' : 'Add Food Item'}</span>
                   </button>
                   <button
                     type="button"
                     onClick={onStartNewMeal}
                     data-testid="results-start-new-meal-button"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] text-xs font-semibold text-zinc-700 bg-white border border-zinc-200 hover:bg-zinc-100 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
                   >
                     <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
                     <span>Start New Meal</span>
@@ -368,14 +389,14 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                 <form
                   onSubmit={handleCreateManualItem}
                   data-testid="manual-add-food-form"
-                  className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3"
+                  className="p-4 rounded-xl bg-[#FAF9F5] border border-[#E5E4DF] space-y-3"
                 >
-                  <p className="text-xs font-semibold text-slate-900">
+                  <p className="text-xs font-semibold text-zinc-900">
                     Add Missing Food Item Manually
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
                     <div className="sm:col-span-5">
-                      <label className="block text-[11px] font-medium text-slate-600 mb-1">
+                      <label className="block text-[11px] font-medium text-zinc-600 mb-1">
                         Food Name
                       </label>
                       <input
@@ -385,11 +406,11 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                         placeholder="e.g., Whole-Wheat Roti or Plain Curd"
                         required
                         data-testid="new-food-name-input"
-                        className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-2 focus:outline-slate-900"
+                        className="w-full px-3 py-2 text-xs bg-white border border-zinc-300 rounded-lg text-zinc-900 focus:outline-2 focus:outline-emerald-800"
                       />
                     </div>
                     <div className="sm:col-span-4">
-                      <label className="block text-[11px] font-medium text-slate-600 mb-1">
+                      <label className="block text-[11px] font-medium text-zinc-600 mb-1">
                         Category
                       </label>
                       <select
@@ -398,7 +419,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                           setNewItemCategory(e.target.value as FoodCategory)
                         }
                         data-testid="new-food-category-select"
-                        className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-2 focus:outline-slate-900"
+                        className="w-full px-2.5 py-2 text-xs bg-white border border-zinc-300 rounded-lg text-zinc-900 focus:outline-2 focus:outline-emerald-800"
                       >
                         {ALL_FOOD_CATEGORIES.map((catKey) => {
                           const meta = FOOD_CATEGORY_TAXONOMY[catKey];
@@ -411,8 +432,8 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                       </select>
                     </div>
                     <div className="sm:col-span-3">
-                      <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                        Serving Size (g)
+                      <label className="block text-[11px] font-medium text-zinc-600 mb-1">
+                        Estimated Portion (g)
                       </label>
                       <input
                         type="number"
@@ -422,7 +443,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                         value={newItemPortion}
                         onChange={(e) => setNewItemPortion(e.target.value)}
                         data-testid="new-food-portion-input"
-                        className="w-full px-2.5 py-1.5 text-xs font-mono bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-2 focus:outline-slate-900"
+                        className="w-full px-2.5 py-2 text-xs font-mono bg-white border border-zinc-300 rounded-lg text-zinc-900 focus:outline-2 focus:outline-emerald-800"
                       />
                     </div>
                   </div>
@@ -430,9 +451,9 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                     <button
                       type="submit"
                       data-testid="confirm-add-food-button"
-                      className="px-3.5 py-1.5 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                      className="px-4 py-2 min-h-[36px] text-xs font-semibold text-white bg-emerald-800 hover:bg-emerald-700 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
                     >
-                      Save Item & Lookup Nutrition
+                      Save Item &amp; Lookup Nutrition
                     </button>
                   </div>
                 </form>
@@ -442,16 +463,16 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
               {detectedItems.length === 0 ? (
                 <div
                   data-testid="empty-detections-placeholder"
-                  className="p-8 rounded-xl border border-slate-200 text-center bg-slate-50/40"
+                  className="p-8 rounded-xl border border-[#E5E4DF] text-center bg-[#FAF9F5]/60"
                 >
                   <Layers
-                    className="w-6 h-6 text-slate-400 mx-auto"
+                    className="w-6 h-6 text-zinc-400 mx-auto"
                     aria-hidden="true"
                   />
-                  <p className="text-sm font-semibold text-slate-800 mt-2.5 font-display">
+                  <p className="text-sm font-semibold text-zinc-800 mt-2.5 font-display">
                     No food items currently in this meal list
                   </p>
-                  <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto leading-relaxed">
+                  <p className="text-xs text-zinc-600 mt-1 max-w-md mx-auto leading-relaxed">
                     {isFoodImage === false
                       ? 'The vision model could not reliably identify food in this image. You can add items manually using "Add Food Item" above or upload a clearer photo.'
                       : 'All items were removed or none were detected. Click "Add Food Item" above to log items manually.'}
@@ -463,7 +484,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                   className="space-y-3.5 max-h-[540px] overflow-y-auto pr-1"
                 >
                   {detectedItems.map((item, index) => {
-                    const cat = FOOD_CATEGORY_TAXONOMY[item.category];
+                    const cat = getCategoryTaxonomy(item.category);
                     const confidencePercent =
                       item.confidenceScore !== undefined
                         ? `${Math.round(item.confidenceScore * 100)}% confidence`
@@ -507,7 +528,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                   onLookupItemNutrition(item.id, item.name);
                                 }
                               }}
-                              className="w-full px-2.5 py-1 text-sm font-semibold text-slate-900 bg-white/95 border border-slate-200 rounded-lg focus:outline-2 focus:outline-slate-900"
+                              className="w-full px-2.5 py-1.5 text-sm font-semibold text-zinc-900 bg-white border border-zinc-200 rounded-lg focus:outline-2 focus:outline-emerald-800"
                             />
                           </div>
 
@@ -519,7 +540,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                               }
                               title="Re-run nutrition lookup for this food name"
                               data-testid={`lookup-nutrition-button-${index}`}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-slate-700 bg-white/95 border border-slate-200 hover:bg-slate-100 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 min-h-[34px] text-xs font-semibold text-emerald-900 bg-white border border-zinc-200 hover:bg-emerald-50 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
                             >
                               <Search className="w-3.5 h-3.5" aria-hidden="true" />
                               <span>Match</span>
@@ -530,7 +551,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                               onClick={() => onRemoveFoodItem(item.id)}
                               aria-label={`Remove ${item.name}`}
                               data-testid={`remove-food-item-${index}`}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-rose-700 hover:text-rose-950 hover:bg-rose-100/80 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 min-h-[34px] text-xs font-medium text-rose-700 hover:text-rose-950 hover:bg-rose-100/80 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
                             >
                               <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                               <span>Remove</span>
@@ -541,7 +562,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                         {/* Middle Row: Editable Category Select & Confirmed Serving Size Input */}
                         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 mt-3 items-center">
                           <div className="sm:col-span-7">
-                            <label className="block text-[11px] font-medium text-slate-600 mb-1">
+                            <label className="block text-[11px] font-medium text-zinc-600 mb-1">
                               Category ({cat.typeInspiration})
                             </label>
                             <select
@@ -553,7 +574,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                   category: e.target.value as FoodCategory,
                                 })
                               }
-                              className="w-full px-2.5 py-1.5 text-xs font-medium text-slate-900 bg-white/95 border border-slate-200 rounded-lg focus:outline-2 focus:outline-slate-900"
+                              className="w-full px-2.5 py-1.5 text-xs font-medium text-zinc-900 bg-white border border-zinc-200 rounded-lg focus:outline-2 focus:outline-emerald-800"
                             >
                               {ALL_FOOD_CATEGORIES.map((catKey) => {
                                 const meta = FOOD_CATEGORY_TAXONOMY[catKey];
@@ -567,8 +588,8 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                           </div>
 
                           <div className="sm:col-span-5">
-                            <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                              Confirmed Serving Size (g)
+                            <label className="block text-[11px] font-medium text-zinc-600 mb-1">
+                              Estimated Portion (g)
                             </label>
                             <div className="flex items-center gap-1.5">
                               <button
@@ -585,7 +606,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                 }
                                 aria-label={`Decrease portion of ${item.name} by 25g`}
                                 data-testid={`decrease-portion-${index}`}
-                                className="p-1.5 bg-white/95 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-100 cursor-pointer shrink-0"
+                                className="p-2 bg-white border border-zinc-200 rounded-lg text-zinc-700 hover:bg-zinc-100 cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
                               >
                                 <Minus className="w-3 h-3" aria-hidden="true" />
                               </button>
@@ -605,7 +626,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                       : 0,
                                   });
                                 }}
-                                className="w-full px-2 py-1 text-xs font-mono font-semibold text-center text-slate-900 bg-white/95 border border-slate-200 rounded-lg focus:outline-2 focus:outline-slate-900"
+                                className="w-full px-2 py-1.5 text-xs font-mono font-semibold text-center text-zinc-900 bg-white border border-zinc-200 rounded-lg focus:outline-2 focus:outline-emerald-800"
                               />
                               <button
                                 type="button"
@@ -618,7 +639,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                 }
                                 aria-label={`Increase portion of ${item.name} by 25g`}
                                 data-testid={`increase-portion-${index}`}
-                                className="p-1.5 bg-white/95 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-100 cursor-pointer shrink-0"
+                                className="p-2 bg-white border border-zinc-200 rounded-lg text-zinc-700 hover:bg-zinc-100 cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
                               >
                                 <Plus className="w-3 h-3" aria-hidden="true" />
                               </button>
@@ -627,18 +648,18 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                         </div>
 
                         {/* Item-Level Nutrition Status & Macros Display */}
-                        <div className="mt-3 pt-3 border-t border-slate-200/70">
+                        <div className="mt-3 pt-3 border-t border-zinc-200/70">
                           {item.nutritionStatus === 'LOADING' && (
                             <div
                               data-testid={`item-nutrition-loading-${index}`}
-                              className="flex items-center gap-2 text-xs text-slate-600 py-1"
+                              className="flex items-center gap-2 text-xs text-zinc-600 py-1"
                             >
                               <Loader2
-                                className="w-3.5 h-3.5 animate-spin text-slate-700"
+                                className="w-3.5 h-3.5 animate-spin text-emerald-700"
                                 aria-hidden="true"
                               />
                               <span>
-                                Looking up verified nutrition data (Local Dataset / Open Food Facts)...
+                                Looking up verified nutrition data (ICMR-NIN / Open Food Facts)...
                               </span>
                             </div>
                           )}
@@ -682,7 +703,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                           );
                                         }
                                       }}
-                                      className="w-full px-2.5 py-1.5 text-xs bg-white border border-amber-300 rounded-lg text-slate-900"
+                                      className="w-full px-2.5 py-1.5 text-xs bg-white border border-amber-300 rounded-lg text-zinc-900 focus:outline-2 focus:outline-emerald-800"
                                     >
                                       <option value="" disabled>
                                         -- Select exact preparation to calculate nutrition --
@@ -704,7 +725,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                             item.nutritionStatus === 'ERROR') && (
                             <div
                               data-testid={`item-nutrition-unavailable-${index}`}
-                              className="p-2.5 rounded-lg bg-white/80 border border-slate-200 flex items-start justify-between gap-2 text-xs text-slate-700"
+                              className="p-2.5 rounded-lg bg-white/90 border border-zinc-200 flex items-start justify-between gap-2 text-xs text-zinc-700"
                             >
                               <div className="flex items-start gap-2">
                                 <AlertCircle
@@ -712,12 +733,12 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                   aria-hidden="true"
                                 />
                                 <div>
-                                  <span className="font-semibold text-slate-900">
+                                  <span className="font-semibold text-zinc-900">
                                     {item.nutritionStatus === 'ERROR'
                                       ? 'Nutrition Lookup Error'
                                       : 'Nutrition Data Unavailable'}
                                   </span>
-                                  <p className="text-[11px] text-slate-600 mt-0.5">
+                                  <p className="text-[11px] text-zinc-600 mt-0.5">
                                     {item.nutritionMessage ||
                                       'No verified reference record matched this food name. Edit the name above and click Match to try again.'}
                                   </p>
@@ -728,7 +749,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                 onClick={() =>
                                   onLookupItemNutrition(item.id, item.name)
                                 }
-                                className="px-2.5 py-1 text-[11px] font-semibold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-md whitespace-nowrap shrink-0 cursor-pointer"
+                                className="px-2.5 py-1 text-[11px] font-semibold text-zinc-800 bg-zinc-100 hover:bg-zinc-200 rounded-md whitespace-nowrap shrink-0 cursor-pointer"
                               >
                                 Retry
                               </button>
@@ -742,14 +763,14 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                 className="space-y-2"
                               >
                                 {/* Scaled Item Macros Strip (for confirmed serving size) */}
-                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 bg-white/90 border border-slate-200/90 rounded-lg p-2 text-center">
+                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 bg-white border border-zinc-200/90 rounded-lg p-2 text-center">
                                   <div>
-                                    <span className="text-[10px] text-slate-500 block">
+                                    <span className="text-[10px] text-zinc-500 block">
                                       Calories
                                     </span>
                                     <span
                                       data-testid={`item-calories-${index}`}
-                                      className="text-xs font-semibold text-slate-900 font-mono"
+                                      className="text-xs font-semibold text-zinc-900 font-mono"
                                     >
                                       {formatNutrientValue(
                                         scaledMacros.caloriesKcal,
@@ -758,12 +779,12 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                     </span>
                                   </div>
                                   <div>
-                                    <span className="text-[10px] text-slate-500 block">
+                                    <span className="text-[10px] text-zinc-500 block">
                                       Protein
                                     </span>
                                     <span
                                       data-testid={`item-protein-${index}`}
-                                      className="text-xs font-semibold text-slate-900 font-mono"
+                                      className="text-xs font-semibold text-zinc-900 font-mono"
                                     >
                                       {formatNutrientValue(
                                         scaledMacros.proteinGrams,
@@ -772,12 +793,12 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                     </span>
                                   </div>
                                   <div>
-                                    <span className="text-[10px] text-slate-500 block">
+                                    <span className="text-[10px] text-zinc-500 block">
                                       Carbs
                                     </span>
                                     <span
                                       data-testid={`item-carbs-${index}`}
-                                      className="text-xs font-semibold text-slate-900 font-mono"
+                                      className="text-xs font-semibold text-zinc-900 font-mono"
                                     >
                                       {formatNutrientValue(
                                         scaledMacros.carbsGrams,
@@ -786,12 +807,12 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                     </span>
                                   </div>
                                   <div>
-                                    <span className="text-[10px] text-slate-500 block">
+                                    <span className="text-[10px] text-zinc-500 block">
                                       Fat
                                     </span>
                                     <span
                                       data-testid={`item-fat-${index}`}
-                                      className="text-xs font-semibold text-slate-900 font-mono"
+                                      className="text-xs font-semibold text-zinc-900 font-mono"
                                     >
                                       {formatNutrientValue(
                                         scaledMacros.fatGrams,
@@ -800,12 +821,12 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                     </span>
                                   </div>
                                   <div className="col-span-2 sm:col-span-1">
-                                    <span className="text-[10px] text-slate-500 block">
+                                    <span className="text-[10px] text-zinc-500 block">
                                       Fiber
                                     </span>
                                     <span
                                       data-testid={`item-fiber-${index}`}
-                                      className="text-xs font-semibold text-slate-900 font-mono"
+                                      className="text-xs font-semibold text-zinc-900 font-mono"
                                     >
                                       {formatNutrientValue(
                                         scaledMacros.fiberGrams,
@@ -818,7 +839,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                 {/* Alternate Candidate Switcher if Open Food Facts returned multiple matches */}
                                 {item.candidateMatches &&
                                   item.candidateMatches.length > 1 && (
-                                    <div className="flex items-center gap-2 text-[11px] text-slate-600">
+                                    <div className="flex items-center gap-2 text-[11px] text-zinc-600">
                                       <span className="shrink-0 font-medium">
                                         Matched Product:
                                       </span>
@@ -837,7 +858,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                             );
                                           }
                                         }}
-                                        className="w-full px-2 py-1 text-[11px] bg-white/90 border border-slate-200 rounded text-slate-800"
+                                        className="w-full px-2 py-1 text-[11px] bg-white border border-zinc-200 rounded text-zinc-800"
                                       >
                                         {item.candidateMatches.map((cand) => (
                                           <option key={cand.id} value={cand.id}>
@@ -851,10 +872,10 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                   )}
 
                                 {/* Source Attribution & Preparation Assumptions */}
-                                <div className="text-[11px] text-slate-600 leading-relaxed space-y-0.5">
-                                  <div className="flex items-center gap-1.5 text-slate-700">
+                                <div className="text-[11px] text-zinc-600 leading-relaxed space-y-0.5">
+                                  <div className="flex items-center gap-1.5 text-zinc-700">
                                     <Database
-                                      className="w-3 h-3 text-slate-500 shrink-0"
+                                      className="w-3 h-3 text-emerald-700 shrink-0"
                                       aria-hidden="true"
                                     />
                                     <span
@@ -865,7 +886,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                                     </span>
                                   </div>
                                   {item.preparationAssumptions && (
-                                    <p className="text-slate-500">
+                                    <p className="text-zinc-500">
                                       Assumptions: {item.preparationAssumptions}
                                     </p>
                                   )}
@@ -875,13 +896,13 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                         </div>
 
                         {/* Bottom Metadata Line (Unboxed text with typographic separators) */}
-                        <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex flex-wrap items-center gap-2 text-[11px] text-slate-600">
+                        <div className="mt-2.5 pt-2 border-t border-zinc-200/60 flex flex-wrap items-center gap-2 text-[11px] text-zinc-600">
                           <span className={`font-semibold ${cat.textClass}`}>
                             {cat.label}
                           </span>
                           <span aria-hidden="true">·</span>
                           <span className="font-mono">
-                            Serving: {item.estimatedPortionGrams} g
+                            Est. Serving: {item.estimatedPortionGrams} g
                           </span>
                           {confidencePercent && (
                             <>
@@ -894,7 +915,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                           {item.isManuallyAdded && (
                             <>
                               <span aria-hidden="true">·</span>
-                              <span className="font-medium text-slate-800">
+                              <span className="font-medium text-zinc-800">
                                 Added manually
                               </span>
                             </>
@@ -904,7 +925,7 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
                               <span aria-hidden="true">·</span>
                               <span
                                 data-testid={`user-edited-indicator-${index}`}
-                                className="font-medium text-slate-800"
+                                className="font-medium text-zinc-800"
                               >
                                 Edited by user
                               </span>
@@ -921,27 +942,25 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
         </div>
       </div>
 
-      {/* Meal-Level Nutrition Summary Footer */}
-      <div className="mt-6 pt-5 border-t border-slate-100 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-slate-800">
-              Estimated Meal Nutrition Totals
+      {/* Visually Prominent Meal-Level Nutrition Summary Footer */}
+      <div className="mt-6 pt-5 border-t border-zinc-200/80 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-600">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-zinc-900 text-sm font-display">
+              Estimated Meal Nutrition Summary
             </span>
             {summary.itemCount > 0 && summary.isComplete && (
               <span
                 data-testid="complete-totals-indicator"
-                className="inline-flex items-center gap-1 text-emerald-700 font-medium"
+                className="inline-flex items-center gap-1 text-emerald-800 font-medium"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>
-                  All {summary.itemCount} item(s) matched
-                </span>
+                <span>All {summary.itemCount} item(s) matched</span>
               </span>
             )}
           </div>
-          <span data-testid="total-meal-weight" className="font-mono">
-            Total Serving Weight: {summary.totalWeightGrams} g
+          <span data-testid="total-meal-weight" className="font-mono text-zinc-600">
+            Total Est. Weight: {summary.totalWeightGrams} g
           </span>
         </div>
 
@@ -964,55 +983,57 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
         )}
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span className="text-xs text-slate-500 block">Calories</span>
+          <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200/80">
+            <span className="text-xs text-emerald-950 font-medium block">
+              Est. Calories
+            </span>
             <span
               data-testid="meal-total-calories"
-              className="text-base font-semibold text-slate-900 font-mono mt-0.5 block"
+              className="text-base font-bold text-emerald-950 font-mono mt-0.5 block"
             >
               {summary.totals.caloriesKcal !== null
                 ? `${summary.totals.caloriesKcal} kcal`
                 : '— kcal'}
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span className="text-xs text-slate-500 block">Protein</span>
+          <div className="p-3 rounded-xl bg-[#FAF9F5] border border-[#E5E4DF]">
+            <span className="text-xs text-zinc-600 block">Protein</span>
             <span
               data-testid="meal-total-protein"
-              className="text-base font-semibold text-slate-900 font-mono mt-0.5 block"
+              className="text-base font-semibold text-zinc-900 font-mono mt-0.5 block"
             >
               {summary.totals.proteinGrams !== null
                 ? `${summary.totals.proteinGrams} g`
                 : '— g'}
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span className="text-xs text-slate-500 block">Carbs</span>
+          <div className="p-3 rounded-xl bg-[#FAF9F5] border border-[#E5E4DF]">
+            <span className="text-xs text-zinc-600 block">Carbohydrates</span>
             <span
               data-testid="meal-total-carbs"
-              className="text-base font-semibold text-slate-900 font-mono mt-0.5 block"
+              className="text-base font-semibold text-zinc-900 font-mono mt-0.5 block"
             >
               {summary.totals.carbsGrams !== null
                 ? `${summary.totals.carbsGrams} g`
                 : '— g'}
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span className="text-xs text-slate-500 block">Total Fat</span>
+          <div className="p-3 rounded-xl bg-[#FAF9F5] border border-[#E5E4DF]">
+            <span className="text-xs text-zinc-600 block">Total Fat</span>
             <span
               data-testid="meal-total-fat"
-              className="text-base font-semibold text-slate-900 font-mono mt-0.5 block"
+              className="text-base font-semibold text-zinc-900 font-mono mt-0.5 block"
             >
               {summary.totals.fatGrams !== null
                 ? `${summary.totals.fatGrams} g`
                 : '— g'}
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 col-span-2 sm:col-span-1">
-            <span className="text-xs text-slate-500 block">Dietary Fiber</span>
+          <div className="p-3 rounded-xl bg-[#FAF9F5] border border-[#E5E4DF] col-span-2 sm:col-span-1">
+            <span className="text-xs text-zinc-600 block">Dietary Fiber</span>
             <span
               data-testid="meal-total-fiber"
-              className="text-base font-semibold text-slate-900 font-mono mt-0.5 block"
+              className="text-base font-semibold text-zinc-900 font-mono mt-0.5 block"
             >
               {summary.totals.fiberGrams !== null
                 ? `${summary.totals.fiberGrams} g`
@@ -1020,6 +1041,10 @@ export const AnalysisResultsPanel: React.FC<AnalysisResultsPanelProps> = ({
             </span>
           </div>
         </div>
+
+        <p className="text-[11px] text-zinc-500 leading-relaxed">
+          Totals are estimates scaled from your confirmed gram portions using ICMR-NIN IFCT 2017 / USDA FDC and Open Food Facts reference records.
+        </p>
       </div>
     </section>
   );

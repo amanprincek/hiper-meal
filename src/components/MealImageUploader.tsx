@@ -89,19 +89,19 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
     <section
       id="upload-workspace"
       aria-labelledby="upload-heading"
-      className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 flex flex-col justify-between h-full"
+      className="bg-white border border-[#E5E4DF] rounded-2xl p-5 sm:p-6 flex flex-col justify-between h-full"
     >
       <div>
         {/* Section Header */}
-        <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-100">
+        <div className="flex items-start justify-between gap-3 pb-4 border-b border-zinc-100">
           <div>
             <h2
               id="upload-heading"
-              className="text-lg font-semibold text-slate-900 font-display"
+              className="text-lg font-semibold text-zinc-900 font-display"
             >
               01. Meal Photo Capture
             </h2>
-            <p className="text-sm text-slate-600 mt-0.5">
+            <p className="text-xs sm:text-sm text-zinc-600 mt-0.5">
               Upload a clear overhead or angled photo of your plate to begin visual logging.
             </p>
           </div>
@@ -111,13 +111,13 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
                 type="button"
                 onClick={onStartNewMeal}
                 data-testid="start-new-meal-button"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[38px] text-xs font-semibold text-emerald-950 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100/80 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
               >
-                <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
+                <RotateCcw className="w-3.5 h-3.5 text-emerald-800" aria-hidden="true" />
                 <span>Start New Meal</span>
               </button>
             )}
-            <div className="text-xs text-slate-500 font-mono whitespace-nowrap shrink-0 hidden sm:block">
+            <div className="text-xs text-zinc-500 font-mono whitespace-nowrap shrink-0 hidden sm:block">
               <span>Max 10.00 MB</span>
             </div>
           </div>
@@ -159,7 +159,7 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
               type="button"
               onClick={onDismissError}
               aria-label="Dismiss validation error"
-              className="p-1.5 text-rose-700 hover:text-rose-950 hover:bg-rose-100 rounded-lg transition-colors cursor-pointer shrink-0"
+              className="p-2 text-rose-700 hover:text-rose-950 hover:bg-rose-100 rounded-lg transition-colors cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
             >
               <X className="w-4 h-4" />
             </button>
@@ -171,16 +171,16 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
           {isProcessingFile ? (
             <div
               data-testid="upload-loading-state"
-              className="min-h-[300px] rounded-xl border border-slate-200 bg-slate-50 flex flex-col items-center justify-center p-8 text-center"
+              className="min-h-[320px] rounded-xl border border-[#E5E4DF] bg-[#FAF9F5] flex flex-col items-center justify-center p-8 text-center"
             >
               <Loader2
-                className="w-8 h-8 text-slate-700 animate-spin"
+                className="w-8 h-8 text-emerald-800 animate-spin"
                 aria-hidden="true"
               />
-              <p className="text-sm font-semibold text-slate-900 mt-3">
+              <p className="text-sm font-semibold text-zinc-900 mt-3">
                 Verifying image file...
               </p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-zinc-600 mt-1">
                 Checking format, file size, and browser image dimensions.
               </p>
             </div>
@@ -191,21 +191,21 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`min-h-[300px] rounded-xl border-2 border-dashed transition-colors flex flex-col items-center justify-center p-6 sm:p-8 text-center ${
+              className={`min-h-[320px] rounded-xl border-2 border-dashed transition-colors flex flex-col items-center justify-center p-6 sm:p-8 text-center ${
                 isDraggingOver
-                  ? 'border-slate-900 bg-slate-100/70'
-                  : 'border-slate-300 bg-slate-50/70 hover:border-slate-400'
+                  ? 'border-emerald-700 bg-emerald-50/70'
+                  : 'border-zinc-300 bg-[#FAF9F5]/80 hover:border-emerald-700/60 hover:bg-emerald-50/20'
               }`}
             >
-              <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-700 shadow-2xs">
+              <div className="w-13 h-13 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-800">
                 <Camera className="w-6 h-6" aria-hidden="true" />
               </div>
 
-              <h3 className="text-base font-semibold text-slate-900 mt-4 font-display">
-                No meal photo selected
+              <h3 className="text-lg font-semibold text-zinc-900 mt-4 font-display">
+                What&apos;s on your plate?
               </h3>
-              <p className="text-xs text-slate-600 mt-1.5 max-w-sm leading-relaxed">
-                Drag and drop a meal image here, or choose a file from your device to inspect the preview before analysis.
+              <p className="text-xs sm:text-sm text-zinc-600 mt-1.5 max-w-sm leading-relaxed">
+                Upload a meal photo to estimate its nutrition. Drag and drop an image here, or browse from your device.
               </p>
 
               <div className="mt-5">
@@ -213,14 +213,14 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
                   type="button"
                   onClick={triggerFilePicker}
                   data-testid="select-image-button"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 min-h-[42px] text-xs sm:text-sm font-semibold text-white bg-emerald-800 rounded-xl hover:bg-emerald-700 active:bg-emerald-900 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
                 >
                   <ImagePlus className="w-4 h-4" aria-hidden="true" />
-                  <span>Select Image</span>
+                  <span>Choose Photo</span>
                 </button>
               </div>
 
-              <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500">
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs text-zinc-500">
                 <span>Supported formats: JPG, JPEG, PNG, WebP</span>
                 <span aria-hidden="true">·</span>
                 <span>Up to 10 MB</span>
@@ -229,14 +229,32 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
           ) : (
             /* Actual Image Preview State */
             <div data-testid="upload-preview-container" className="space-y-4">
-              <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-950 flex items-center justify-center min-h-[260px] max-h-[380px]">
+              <div className="relative rounded-xl overflow-hidden border border-[#E5E4DF] bg-zinc-950 flex items-center justify-center min-h-[260px] max-h-[380px]">
                 <img
                   src={uploadedImage.previewUrl}
                   alt={`Selected meal preview: ${uploadedImage.fileName}`}
                   referrerPolicy="no-referrer"
                   data-testid="meal-image-preview"
-                  className="max-h-[360px] w-auto max-w-full object-contain"
+                  className={`max-h-[360px] w-auto max-w-full object-contain transition-opacity ${
+                    isAnalyzing ? 'opacity-80' : 'opacity-100'
+                  }`}
                 />
+                {isAnalyzing && (
+                  <div
+                    aria-live="polite"
+                    className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent px-4 py-3 flex items-center justify-between text-xs text-white"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Loader2
+                        className="w-4 h-4 text-emerald-400 animate-spin shrink-0"
+                        aria-hidden="true"
+                      />
+                      <span className="font-medium">
+                        Scanning plate for food items &amp; portion estimates...
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* File Metadata & Replace/Remove Actions */}
@@ -244,25 +262,27 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <CheckCircle2
-                      className="w-4 h-4 text-emerald-600 shrink-0"
+                      className="w-4 h-4 text-emerald-700 shrink-0"
                       aria-hidden="true"
                     />
                     <p
                       data-testid="preview-filename"
-                      className="text-sm font-semibold text-slate-900 truncate"
+                      className="text-sm font-semibold text-zinc-900 truncate"
                       title={uploadedImage.fileName}
                     >
                       {uploadedImage.fileName}
                     </p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-mono mt-1">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 font-mono mt-1">
                     <span>{formatFileSize(uploadedImage.sizeBytes)}</span>
                     <span aria-hidden="true">·</span>
                     <span>
                       {uploadedImage.width} × {uploadedImage.height} px
                     </span>
                     <span aria-hidden="true">·</span>
-                    <span>{uploadedImage.mimeType.replace('image/', '').toUpperCase()}</span>
+                    <span>
+                      {uploadedImage.mimeType.replace('image/', '').toUpperCase()}
+                    </span>
                   </div>
                 </div>
 
@@ -272,16 +292,16 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
                     onClick={triggerFilePicker}
                     disabled={isAnalyzing}
                     data-testid="replace-image-button"
-                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[38px] text-xs font-semibold text-zinc-800 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
                   >
                     <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
-                    <span>Replace Image</span>
+                    <span>Replace Photo</span>
                   </button>
                   <button
                     type="button"
                     onClick={onRemoveImage}
                     data-testid="remove-image-button"
-                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[38px] text-xs font-semibold text-rose-800 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
                   >
                     <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                     <span>Remove</span>
@@ -294,11 +314,15 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
       </div>
 
       {/* Primary Action Bar: Analyze Meal */}
-      <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="text-xs text-slate-600">
-          {uploadedImage ? (
+      <div className="mt-6 pt-5 border-t border-zinc-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="text-xs text-zinc-600">
+          {isAnalyzing ? (
+            <span className="text-emerald-900 font-medium">
+              AI vision analysis in progress. You can cancel anytime via Start New Meal.
+            </span>
+          ) : uploadedImage ? (
             <span>
-              Image verified and ready for food identification.
+              Photo verified and ready for AI food identification.
             </span>
           ) : (
             <span>
@@ -312,7 +336,7 @@ export const MealImageUploader: React.FC<MealImageUploaderProps> = ({
           onClick={onAnalyzeMeal}
           disabled={!uploadedImage || isProcessingFile || isAnalyzing}
           data-testid="analyze-meal-button"
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-500 rounded-xl transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[42px] text-sm font-semibold text-white bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 disabled:bg-zinc-200 disabled:text-zinc-500 rounded-xl transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
         >
           {isAnalyzing ? (
             <>

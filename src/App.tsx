@@ -399,29 +399,45 @@ export default function App() {
     void resolveNutritionForItem(newId, newItem.name);
   };
 
+  const hasActiveMeal =
+    Boolean(uploadedImage) ||
+    analysisStatus !== 'IDLE' ||
+    Boolean(validationError) ||
+    detectedItems.length > 0;
+
   return (
-    <div id="top" className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+    <div
+      id="top"
+      className="min-h-screen flex flex-col bg-[#FAF9F5] text-zinc-900"
+    >
       {/* Top Navigation Bar */}
-      <Header onTriggerFileSelect={handleTriggerFileSelect} />
+      <Header
+        analysisStatus={analysisStatus}
+        hasActiveMeal={hasActiveMeal}
+        onTriggerFileSelect={handleTriggerFileSelect}
+        onStartNewMeal={handleStartNewMeal}
+      />
 
       {/* Main Dashboard Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
-        {/* Dashboard Hero / Intro Header */}
-        <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
+        {/* Compact Dashboard Intro Header */}
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-3 pb-1">
           <div className="max-w-2xl">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 font-display text-balance">
-              AI Visual Nutrition Diary
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 font-display text-balance">
+              Visual Meal &amp; Nutrition Diary
             </h1>
-            <p className="text-sm sm:text-base text-slate-600 mt-1.5 leading-relaxed">
-              Capture a meal photo, review AI food detections, and calculate verified nutrition totals from the ICMR-NIN Indian reference dataset and Open Food Facts.
+            <p className="text-sm text-zinc-600 mt-1 leading-relaxed">
+              Snap or upload a meal photo, verify AI-identified ingredients and portion weights, and calculate estimated macros from ICMR-NIN Indian reference tables and Open Food Facts.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 shrink-0">
-            <span>Verified Nutrition Diary</span>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 shrink-0">
+            <span className="text-emerald-900 font-medium">
+              Verified Nutrition References
+            </span>
             <span aria-hidden="true">·</span>
-            <span>ICMR-NIN & Open Food Facts</span>
+            <span>ICMR-NIN &amp; Open Food Facts</span>
             <span aria-hidden="true">·</span>
-            <span>Live Macro Scaling</span>
+            <span>Editable Portions</span>
           </div>
         </section>
 
@@ -469,9 +485,9 @@ export default function App() {
       </main>
 
       {/* Quiet Footer */}
-      <footer className="border-t border-slate-200 bg-white mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <span>HiperMeal — Visual Nutrition Diary</span>
+      <footer className="border-t border-[#E5E4DF] bg-white mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
+          <span>HiperMeal — AI Visual Nutrition Diary</span>
           <span>
             Nutrition data sourced from ICMR-NIN IFCT 2017 / USDA FDC and Open Food Facts (ODbL). Visual category colors are for grouping only.
           </span>

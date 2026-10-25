@@ -5,12 +5,29 @@
     --font-display: 'Outfit', system-ui, -apple-system, sans-serif;
     --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+    /* Design System Tokens: Warm Off-White + Deep Emerald + Soft Mint */
+    --bg-canvas: #FAF9F5;
+    --bg-surface: #FFFFFF;
+    --bg-surface-subtle: #F4F3EE;
+    --bg-mint-soft: #ECFDF5;
+    --text-primary: #18181B;
+    --text-secondary: #52525B;
+    --text-muted: #71717A;
+    --brand-emerald: #065F46;
+    --brand-emerald-hover: #047857;
+    --border-subtle: #E5E4DF;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
     font-family: var(--font-sans);
-    background-color: #F8FAFC;
-    color: #0F172A;
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, .font-display {
@@ -20,5 +37,16 @@
   .font-mono {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

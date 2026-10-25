@@ -46,9 +46,9 @@ export const FOOD_CATEGORY_TAXONOMY: Record<FoodCategory, FoodCategoryTaxonomy> 
     description: 'Fresh leafy greens, root vegetables, cruciferous produce, and whole fruits.',
     examples: 'Spinach, broccoli, berries, avocado, tomatoes',
     swatchClass: 'bg-emerald-600',
-    borderClass: 'border-emerald-300',
+    borderClass: 'border-emerald-200/90',
     textClass: 'text-emerald-800',
-    surfaceClass: 'bg-emerald-50/70',
+    surfaceClass: 'bg-emerald-50/40',
   },
   [FoodCategory.PROTEIN]: {
     id: FoodCategory.PROTEIN,
@@ -57,9 +57,9 @@ export const FOOD_CATEGORY_TAXONOMY: Record<FoodCategory, FoodCategoryTaxonomy> 
     description: 'Poultry, meat, fish, shellfish, eggs, legumes, lentils, paneer, tofu, and tempeh.',
     examples: 'Dal tadka, grilled salmon, chicken breast, eggs, paneer, tofu',
     swatchClass: 'bg-rose-600',
-    borderClass: 'border-rose-300',
+    borderClass: 'border-rose-200/90',
     textClass: 'text-rose-800',
-    surfaceClass: 'bg-rose-50/70',
+    surfaceClass: 'bg-rose-50/40',
   },
   [FoodCategory.GRAINS]: {
     id: FoodCategory.GRAINS,
@@ -68,9 +68,9 @@ export const FOOD_CATEGORY_TAXONOMY: Record<FoodCategory, FoodCategoryTaxonomy> 
     description: 'Whole and refined cereal grains, rotis, flatbreads, pasta, rice, oats, and starchy tubers.',
     examples: 'Basmati rice, whole-wheat roti, sourdough bread, quinoa, oats',
     swatchClass: 'bg-amber-700',
-    borderClass: 'border-amber-300',
+    borderClass: 'border-amber-200/90',
     textClass: 'text-amber-900',
-    surfaceClass: 'bg-amber-50/70',
+    surfaceClass: 'bg-amber-50/40',
   },
   [FoodCategory.DAIRY]: {
     id: FoodCategory.DAIRY,
@@ -79,9 +79,9 @@ export const FOOD_CATEGORY_TAXONOMY: Record<FoodCategory, FoodCategoryTaxonomy> 
     description: 'Milk, curd, raita, yogurt, kefir, cheeses, and fortified dairy alternatives.',
     examples: 'Plain curd, boondi raita, Greek yogurt, cheddar, milk',
     swatchClass: 'bg-sky-600',
-    borderClass: 'border-sky-300',
+    borderClass: 'border-sky-200/90',
     textClass: 'text-sky-800',
-    surfaceClass: 'bg-sky-50/70',
+    surfaceClass: 'bg-sky-50/40',
   },
   [FoodCategory.OILS]: {
     id: FoodCategory.OILS,
@@ -90,11 +90,30 @@ export const FOOD_CATEGORY_TAXONOMY: Record<FoodCategory, FoodCategoryTaxonomy> 
     description: 'Cooking oils, ghee, butter, dressings, fried snacks, nuts, and concentrated seed fats.',
     examples: 'Ghee tadka, olive oil, butter, walnuts, fried crisps',
     swatchClass: 'bg-orange-600',
-    borderClass: 'border-orange-300',
+    borderClass: 'border-orange-200/90',
     textClass: 'text-orange-800',
-    surfaceClass: 'bg-orange-50/70',
+    surfaceClass: 'bg-orange-50/40',
   },
 };
+
+export const UNKNOWN_CATEGORY_TAXONOMY: FoodCategoryTaxonomy = {
+  id: FoodCategory.PRODUCE,
+  label: 'Unclassified Food',
+  typeInspiration: 'Neutral-Inspired',
+  description: 'General or unclassified culinary item awaiting category selection.',
+  examples: 'Mixed dishes, condiments, beverages',
+  swatchClass: 'bg-zinc-500',
+  borderClass: 'border-zinc-200',
+  textClass: 'text-zinc-700',
+  surfaceClass: 'bg-zinc-50/60',
+};
+
+export function getCategoryTaxonomy(category?: FoodCategory | string | null): FoodCategoryTaxonomy {
+  if (category && isValidFoodCategory(category)) {
+    return FOOD_CATEGORY_TAXONOMY[category];
+  }
+  return UNKNOWN_CATEGORY_TAXONOMY;
+}
 
 /**
  * Macronutrients per 100g or scaled to a portion.
